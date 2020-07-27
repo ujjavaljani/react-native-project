@@ -1,0 +1,28 @@
+-Login with API.
+-User can add/edit/delete Fixed deposites.
+-User can list/search by name all added fixed deposites.
+-User should able to bind FD with family member name.
+-Famiy member list.
+-User should get local notification for maturity date.
+-Auto backup to google drive.
+
+
+-Add form
+    -Name 1*
+    -Name 2
+    -Name 3
+    -Nominee name
+    -Address -----
+    -Scheme*
+    -Bank/Post Name *
+    -Branch *
+    -Deposite date
+    -Deposite Duration *
+        -year(s), month(s), day(s)
+    -Deposite amount *
+    -Interest rate *
+    -Calculate maturity amount
+    -Maturuty amount *
+    -Family name *
+    -Maturity Date
+
