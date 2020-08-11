@@ -28,7 +28,7 @@ function SignIn({navigation}) {
     }
   }
   function login() {
-    Alert.alert(JSON.stringify({username, password}));
+    // Alert.alert(JSON.stringify({username, password}));
     navigation.push('Dashboard');
   }
   return (

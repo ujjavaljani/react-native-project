@@ -16,7 +16,7 @@
     -Scheme*
     -Bank/Post Name *
     -Branch *
-    -Deposite date
+    -Deposite date *
     -Deposite Duration *
         -year(s), month(s), day(s)
     -Deposite amount *

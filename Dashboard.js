@@ -1,7 +1,14 @@
 import React from 'react';
-import {View, FlatList, Text, StyleSheet} from 'react-native';
+import {
+  View,
+  FlatList,
+  Text,
+  StyleSheet,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import Header from './Header';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {fetchRecords} from './utils/dbOperations';
 const records = [
   {
     amount: 50000,
@@ -60,34 +67,59 @@ const records = [
     branch: 'Sindhu bhavan',
   },
 ];
-const Dashboard = () => {
-  return (
-    <View style={styles.dashboardScreen}>
-      <Header title="Dashboard" />
-      <FlatList
-        data={records}
-        renderItem={({item}) => (
-          <View style={styles.item}>
-            <Text style={styles.depositerName}>{item.name[0]}</Text>
-            <View style={styles.amountContainer}>
-              <Text style={styles.amount}>{item.amount}</Text>
-              <View style={styles.percentageContainer}>
-                <Text>{`${item.interestRate}%`}</Text>
-                <Text>-------------></Text>
-              </View>
-              <Text style={styles.amount}>{item.maturityAmount}</Text>
-            </View>
-            <View style={styles.bankContainer}>
-              <Text style={styles.bankLabel}>Bank:</Text>
-              <Text style={styles.bankName}>{item.bankName}</Text>
-              <Text style={styles.branchName}>{`( ${item.branch} )`}</Text>
-            </View>
-          </View>
+
+class Dashboard extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      investments: [],
+    };
+    this.getInvestment();
+  }
+  async getInvestment() {
+    const investments = await fetchRecords();
+    this.setState({investments: investments.raw()});
+    console.log('investments in dashboard', investments.raw());
+  }
+  render() {
+    return (
+      <View style={styles.dashboardScreen}>
+        <Header
+          title="Dashboard"
+          right={true}
+          rightHandler={() => this.props.navigation.push('Investment')}
+        />
+        {this.state.investments.length > 0 && (
+          <FlatList
+            data={this.state.investments}
+            renderItem={({item}) => (
+              <TouchableWithoutFeedback>
+                <View style={styles.item}>
+                  <Text style={styles.depositerName}>{item.name1}</Text>
+                  <View style={styles.amountContainer}>
+                    <Text style={styles.amount}>{item.depositeAmount}</Text>
+                    <View style={styles.percentageContainer}>
+                      <Text>{`${item.interestRate}%`}</Text>
+                      <Text>-------------></Text>
+                    </View>
+                    <Text style={styles.amount}>{item.maturityAmount}</Text>
+                  </View>
+                  <View style={styles.bankContainer}>
+                    <Text style={styles.bankLabel}>Bank:</Text>
+                    <Text style={styles.bankName}>{item.bankName}</Text>
+                    <Text style={styles.branchName}>{`( ${
+                      item.branch
+                    } )`}</Text>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            )}
+          />
         )}
-      />
-    </View>
-  );
-};
+      </View>
+    );
+  }
+}
 const styles = StyleSheet.create({
   dashboardScreen: {
     flex: 1,

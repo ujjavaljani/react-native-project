@@ -1,6 +1,10 @@
 import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  CardStyleInterpolators,
+  TransitionPresets,
+} from '@react-navigation/stack';
 import SignIn from './SignIn';
 import Dashboard from './Dashboard';
 import Investment from './AddInvestment';
@@ -10,9 +14,13 @@ const Routes = () => {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Investment"
+          initialRouteName="SignIn"
           screenOptions={{
             headerShown: false,
+            gestureEnabled: true,
+            gestureDirection: 'horizontal',
+            cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+            // ...TransitionPresets.SlideFromRightIOS,
           }}>
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="Dashboard" component={Dashboard} />
