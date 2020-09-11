@@ -9,6 +9,7 @@ import {
 import Header from './Header';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {fetchRecords} from './utils/dbOperations';
+import Drawer from './Drawer';
 const records = [
   {
     amount: 50000,
@@ -87,13 +88,18 @@ class Dashboard extends React.Component {
         <Header
           title="Dashboard"
           right={true}
-          rightHandler={() => this.props.navigation.push('Investment')}
+          rightHandler={() => this.props.navigation.navigate('Investment')}
         />
         {this.state.investments.length > 0 && (
           <FlatList
             data={this.state.investments}
             renderItem={({item}) => (
-              <TouchableWithoutFeedback>
+              <TouchableWithoutFeedback
+                onPress={() =>
+                  this.props.navigation.navigate('InvestmentDetail', {
+                    investment: item,
+                  })
+                }>
                 <View style={styles.item}>
                   <Text style={styles.depositerName}>{item.name1}</Text>
                   <View style={styles.amountContainer}>

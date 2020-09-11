@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,15 @@ import {
   TouchableWithoutFeedback,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Header from './Header';
 import Colors from './assets/colors';
 import {Picker} from '@react-native-community/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {fetchRecords, addRecord} from './utils/dbOperations';
+import AutoCompleteSearch from './AutoCompleteSearch';
+import Loader from './Loader';
 const schemes = ['RD', 'MIS', 'KVP', 'TD', 'Bank FD'];
 const years = [...Array(11).keys()];
 const months = [...Array(13).keys()];
@@ -46,9 +49,9 @@ class AddInvestment extends React.Component {
     super(props);
     this.state = {
       depositer: {
-        depositer1: null,
-        depositer2: null,
-        depositer3: null,
+        depositer1: '',
+        depositer2: '',
+        depositer3: '',
       },
       nominee: '',
       bankName: '',
@@ -62,6 +65,9 @@ class AddInvestment extends React.Component {
       interestRate: 0,
       maturityAmount: 0,
       datePickerVisibilityFor: '',
+      error: [],
+      isLoading: false,
+      accountNo: '',
       //   isFocused:false
     };
     console.log('Process', process.env);
@@ -80,7 +86,9 @@ class AddInvestment extends React.Component {
       case 'depositer1':
       case 'depositer2':
       case 'depositer3':
-        stateData = {depositer: {...this.state.depositer, [field]: value}};
+        stateData = {
+          depositer: {...this.state.depositer, [field]: value},
+        };
         break;
       //   case 'nominee':
       //     stateData=value;
@@ -145,16 +153,70 @@ class AddInvestment extends React.Component {
     return `${date.getDate()} - ${date.getMonth() + 1} - ${date.getFullYear()}`;
   }
   submitInvestment = () => {
-    console.log('statess===>', this.state);
-    // const investmentData = this.state;
+    this.setState({isLoading: true});
+    this.validateFields(() => {
+      if (this.state.error.length === 0) {
+        console.log('form submit===>', this.state);
+        // const investmentData = this.state;
+        const {
+          datePickerVisibilityFor,
+          datepickerVisibility,
+          ...investmentData
+        } = this.state;
+        console.log('investmentData', investmentData);
+        addRecord(investmentData);
+        // this.props.navigation.navigate('Dashboard');
+      } else {
+        console.log('Error in submit', this.state.error);
+      }
+      this.setState({isLoading: false});
+    });
+  };
+  validateFields = callBack => {
     const {
-      datePickerVisibilityFor,
-      datepickerVisibility,
-      ...investmentData
+      depositer: {depositer1},
+      depositeAmount,
+      depositeDate,
+      maturityDate,
+      interestRate,
+      scheme,
+      branchName,
+      bankName,
+      accountNo,
     } = this.state;
-    console.log('investmentData', investmentData);
-    addRecord(investmentData);
-    // this.props.navigation.push('Dashboard');
+    let errorArr = [];
+    console.log('depositer1', depositer1);
+    if (!accountNo || accountNo.trim() === '') {
+      errorArr.push('accountNo');
+    }
+    if (!depositer1 || depositer1.trim() === '') {
+      errorArr.push('depositer1');
+    }
+    if (!depositeAmount || depositeAmount < 1) {
+      errorArr.push('depositeAmount');
+    }
+    if (depositeDate === '') {
+      errorArr.push('depositeDate');
+    }
+    if (maturityDate === '') {
+      errorArr.push('maturityDate');
+    }
+    if (maturityDate && maturityDate <= depositeDate) {
+      errorArr.push('maturityDate');
+    }
+    if (!interestRate || interestRate.trim() === '') {
+      errorArr.push('interestRate');
+    }
+    if (scheme === '') {
+      errorArr.push('scheme');
+    }
+    if (!branchName || branchName.trim() === '') {
+      errorArr.push('branchName');
+    }
+    if (!bankName || bankName.trim() === '') {
+      errorArr.push('bankName');
+    }
+    this.setState({error: errorArr}, () => callBack());
   };
   //   const labelStyle = {
   //     position: 'absolute',
@@ -165,154 +227,208 @@ class AddInvestment extends React.Component {
   //   };
   render() {
     return (
-      <TouchableWithoutFeedback
-        onPress={() => {
-          Keyboard.dismiss();
-        }}>
-        <ScrollView style={styles.screenContainer}>
-          <Header
-            left={true}
-            title="Add Investment"
-            right={false}
-            leftHandler={() => this.props.navigation.push('Dashboard')}
-          />
-          <View style={styles.formContainer}>
-            <View>
-              {/* <Text style={labelStyle}>First Depositer Name</Text> */}
-              <View style={styles.userIconCon}>
-                <Image
-                  source={require('./assets/images/user.png')}
-                  style={styles.userIcon}
-                />
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.name]}
-                placeholder="Enter First Depositer Name"
-                value={this.state.depositer.depositer1}
-                onChangeText={this.inputHandler.bind(this, 'depositer1')}
-                // onFocus={() => this.manageInputFocus(true)}
-                // onBlur={() => this.manageInputFocus(false)}
-              />
-            </View>
-            <View>
-              <View style={styles.userIconCon}>
-                <Image
-                  source={require('./assets/images/user.png')}
-                  style={styles.userIcon}
-                />
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.name]}
-                placeholder="Enter Second Depositer Name"
-                value={this.state.depositer.depositer2}
-                onChangeText={this.inputHandler.bind(this, 'depositer2')}
-              />
-            </View>
-            <View>
-              <View style={styles.userIconCon}>
-                <Image
-                  source={require('./assets/images/user.png')}
-                  style={styles.userIcon}
-                />
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.name]}
-                placeholder="Enter Third Depositer Name"
-                value={this.state.depositer.depositer3}
-                onChangeText={this.inputHandler.bind(this, 'depositer3')}
-              />
-            </View>
-            <View>
-              <View style={styles.userIconCon}>
-                <Image
-                  source={require('./assets/images/user.png')}
-                  style={styles.userIcon}
-                />
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.name]}
-                placeholder="Enter Nominee Name"
-                value={this.state.nominee}
-                onChangeText={this.inputHandler.bind(this, 'nominee')}
-              />
-            </View>
-            <View>
-              <View style={styles.userIconCon}>
-                <Image
-                  source={require('./assets/images/bank.png')}
-                  style={styles.userIcon}
-                />
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.name]}
-                placeholder="Enter Bank Name"
-                value={this.state.bankName}
-                onChangeText={this.inputHandler.bind(this, 'bankName')}
-              />
-            </View>
-            <View>
-              <View style={styles.userIconCon}>
-                <Image
-                  source={require('./assets/images/bank-location.png')}
-                  style={styles.userIcon}
-                />
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.name]}
-                placeholder="Enter Branch Name"
-                value={this.state.branchName}
-                onChangeText={this.inputHandler.bind(this, 'branchName')}
-              />
-            </View>
-            <View>
-              <View style={styles.interestCon}>
-                <Image
-                  source={require('./assets/images/rupees.png')}
-                  style={styles.interestIcon}
-                />
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.name]}
-                placeholder="Investment Amount"
-                value={this.state.depositeAmount}
-                onChangeText={this.inputHandler.bind(this, 'depositeAmount')}
-                keyboardType="number-pad"
-              />
-            </View>
-            <View style={styles.multipleElement}>
-              <View style={styles.schemeContainer}>
-                <Picker
-                  testID="Scheme"
-                  selectedValue={this.state.scheme}
-                  //   style={{height: 50, width: 150}}
-                  style={styles.schemePicker}
-                  onValueChange={this.inputHandler.bind(this, 'scheme')}>
-                  {schemes.map((schemeItem, index) => {
-                    // console.log('index', index);
-                    return (
-                      <Picker.Item
-                        itemStyle={styles.schemeItem}
-                        key={index}
-                        label={schemeItem}
-                        value={schemeItem}
-                      />
-                    );
-                  })}
-                </Picker>
-              </View>
-              <TouchableOpacity
-                activeOpacity={1}
-                style={styles.datepickerContainer}
-                onPress={() => {
-                  this.setDatepickerVisibility(true, 'depositeDate');
-                }}>
-                <Text style={styles.datepickerText}>
-                  {this.state.depositeDate
-                    ? this.dateFormat(this.state.depositeDate)
-                    : 'Select Deposite Date DD-MM-YYYY'}
-                </Text>
-              </TouchableOpacity>
-              {/* {datepickerVisibility && (
+      <>
+        <Loader loading={this.state.isLoading} />
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss();
+          }}>
+          <View style={styles.screenContainer}>
+            <Header
+              left={true}
+              title="Add Investment"
+              right={false}
+              leftHandler={() => this.props.navigation.navigate('Dashboard')}
+            />
+            <ScrollView>
+              <View style={styles.formContainer}>
+                <View>
+                  <TextInput
+                    style={[
+                      styles.textInputNoPad,
+                      styles.name,
+                      this.state.error.includes('accountNo')
+                        ? styles.invalid
+                        : '',
+                    ]}
+                    placeholder="Enter Account Number"
+                    value={this.state.accountNo}
+                    onChangeText={this.inputHandler.bind(this, 'accountNo')}
+                  />
+                </View>
+                <View>
+                  {/* <Text style={labelStyle}>First Depositer Name</Text> */}
+                  <View style={styles.userIconCon}>
+                    <Image
+                      source={require('./assets/images/user.png')}
+                      style={styles.userIcon}
+                    />
+                  </View>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      styles.name,
+                      this.state.error.includes('depositer1')
+                        ? styles.invalid
+                        : '',
+                    ]}
+                    placeholder="Enter First Depositer Name"
+                    value={this.state.depositer.depositer1}
+                    onChangeText={this.inputHandler.bind(this, 'depositer1')}
+                    // onFocus={() => this.manageInputFocus(true)}
+                    // onBlur={() => this.manageInputFocus(false)}
+                  />
+                </View>
+                <View>
+                  <View style={styles.userIconCon}>
+                    <Image
+                      source={require('./assets/images/user.png')}
+                      style={styles.userIcon}
+                    />
+                  </View>
+                  <TextInput
+                    style={[styles.textInput, styles.name]}
+                    placeholder="Enter Second Depositer Name"
+                    value={this.state.depositer.depositer2}
+                    onChangeText={this.inputHandler.bind(this, 'depositer2')}
+                  />
+                </View>
+                <View>
+                  <View style={styles.userIconCon}>
+                    <Image
+                      source={require('./assets/images/user.png')}
+                      style={styles.userIcon}
+                    />
+                  </View>
+                  <TextInput
+                    style={[styles.textInput, styles.name]}
+                    placeholder="Enter Third Depositer Name"
+                    value={this.state.depositer.depositer3}
+                    onChangeText={this.inputHandler.bind(this, 'depositer3')}
+                  />
+                </View>
+                <View>
+                  <View style={styles.userIconCon}>
+                    <Image
+                      source={require('./assets/images/user.png')}
+                      style={styles.userIcon}
+                    />
+                  </View>
+                  <TextInput
+                    style={[styles.textInput, styles.name]}
+                    placeholder="Enter Nominee Name"
+                    value={this.state.nominee}
+                    onChangeText={this.inputHandler.bind(this, 'nominee')}
+                  />
+                </View>
+                <View>
+                  <View style={styles.userIconCon}>
+                    <Image
+                      source={require('./assets/images/bank.png')}
+                      style={styles.userIcon}
+                    />
+                  </View>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      styles.name,
+                      this.state.error.includes('bankName')
+                        ? styles.invalid
+                        : '',
+                    ]}
+                    placeholder="Enter Bank Name"
+                    value={this.state.bankName}
+                    onChangeText={this.inputHandler.bind(this, 'bankName')}
+                  />
+                </View>
+                <View>
+                  <View style={styles.userIconCon}>
+                    <Image
+                      source={require('./assets/images/bank-location.png')}
+                      style={styles.userIcon}
+                    />
+                  </View>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      styles.name,
+                      this.state.error.includes('branchName')
+                        ? styles.invalid
+                        : '',
+                    ]}
+                    placeholder="Enter Branch Name"
+                    value={this.state.branchName}
+                    onChangeText={this.inputHandler.bind(this, 'branchName')}
+                  />
+                </View>
+                <View>
+                  <View style={styles.interestCon}>
+                    <Image
+                      source={require('./assets/images/rupees.png')}
+                      style={styles.interestIcon}
+                    />
+                  </View>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      styles.name,
+                      this.state.error.includes('depositeAmount')
+                        ? styles.invalid
+                        : '',
+                    ]}
+                    placeholder="Investment Amount"
+                    value={this.state.depositeAmount}
+                    onChangeText={this.inputHandler.bind(
+                      this,
+                      'depositeAmount',
+                    )}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.multipleElement}>
+                  <View style={styles.schemeContainer}>
+                    <Picker
+                      testID="Scheme"
+                      selectedValue={this.state.scheme}
+                      //   style={{height: 50, width: 150}}
+                      style={[
+                        styles.schemePicker,
+                        this.state.error.includes('scheme')
+                          ? styles.invalid
+                          : '',
+                      ]}
+                      onValueChange={this.inputHandler.bind(this, 'scheme')}>
+                      {schemes.map((schemeItem, index) => {
+                        // console.log('index', index);
+                        return (
+                          <Picker.Item
+                            itemStyle={styles.schemeItem}
+                            key={index}
+                            label={schemeItem}
+                            value={schemeItem}
+                          />
+                        );
+                      })}
+                    </Picker>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    style={[
+                      styles.datepickerContainer,
+                      this.state.error.includes('depositeDate')
+                        ? styles.invalid
+                        : '',
+                    ]}
+                    onPress={() => {
+                      this.setDatepickerVisibility(true, 'depositeDate');
+                    }}>
+                    <Text style={styles.datepickerText}>
+                      {this.state.depositeDate
+                        ? this.dateFormat(this.state.depositeDate)
+                        : 'Select Deposite Date DD-MM-YYYY'}
+                    </Text>
+                  </TouchableOpacity>
+                  {/* {datepickerVisibility && (
               <DateTimePicker
                 // testID="dateTimePicker"
                 style={styles.datepicker}
@@ -323,9 +439,9 @@ class AddInvestment extends React.Component {
                 onChange={datepickerChange}
               />
             )} */}
-            </View>
-            <View style={[styles.multipleElement, styles.tenureContainer]}>
-              {/* <View style={styles.tenureLabel}>
+                </View>
+                <View style={[styles.multipleElement, styles.tenureContainer]}>
+                  {/* <View style={styles.tenureLabel}>
               <View style={styles.userIconCon1}>
                 <Image
                   source={require('./assets/images/tenure.png')}
@@ -334,149 +450,174 @@ class AddInvestment extends React.Component {
               </View>
               <Text style={[styles.labelIcon]}>Tenure</Text>
             </View> */}
-              <View style={styles.tenureIconContainer}>
-                <Image
-                  source={require('./assets/images/tenure.png')}
-                  style={styles.tenureIcon}
-                />
-              </View>
-              <View style={[styles.multipleElement, styles.tenureInput]}>
-                <View style={[styles.years, styles.tenure]}>
-                  <Picker
-                    selectedValue={this.state.tenure.years}
-                    style={styles.schemePicker}
-                    onValueChange={this.inputHandler.bind(this, 'years')}
-                    itemStyle={styles.pickerItem}>
-                    <Picker.Item
-                      key={`year`}
-                      label={`Years`}
-                      // value={year.toString()}
+                  <View style={styles.tenureIconContainer}>
+                    <Image
+                      source={require('./assets/images/tenure.png')}
+                      style={styles.tenureIcon}
                     />
-                    {years.map((year, index) => {
-                      return (
+                  </View>
+                  <View style={[styles.multipleElement, styles.tenureInput]}>
+                    <View style={[styles.years, styles.tenure]}>
+                      <Picker
+                        selectedValue={this.state.tenure.years}
+                        style={styles.schemePicker}
+                        onValueChange={this.inputHandler.bind(this, 'years')}
+                        itemStyle={styles.pickerItem}>
                         <Picker.Item
-                          key={`year-${index}`}
-                          label={year.toString()}
-                          value={year.toString()}
+                          key={`year`}
+                          label={`Years`}
+                          // value={year.toString()}
                         />
-                      );
-                    })}
-                  </Picker>
+                        {years.map((year, index) => {
+                          return (
+                            <Picker.Item
+                              key={`year-${index}`}
+                              label={year.toString()}
+                              value={year.toString()}
+                            />
+                          );
+                        })}
+                      </Picker>
+                    </View>
+                    <View style={[styles.months, styles.tenure]}>
+                      <Picker
+                        selectedValue={this.state.tenure.months}
+                        style={styles.schemePicker}
+                        onValueChange={this.inputHandler.bind(this, 'months')}>
+                        <Picker.Item
+                          key={`month`}
+                          label={`Months`}
+                          // value={year.toString()}
+                        />
+                        {months.map((month, index) => {
+                          // console.log('index', index);
+                          return (
+                            <Picker.Item
+                              key={`month-${index}`}
+                              label={month.toString()}
+                              value={month.toString()}
+                            />
+                          );
+                        })}
+                      </Picker>
+                    </View>
+                    <View style={[styles.days, styles.tenure]}>
+                      <Picker
+                        selectedValue={this.state.tenure.days}
+                        style={styles.schemePicker}
+                        onValueChange={this.inputHandler.bind(this, 'days')}>
+                        <Picker.Item
+                          key={`days`}
+                          label={`Days`}
+                          // value={year.toString()}
+                        />
+                        {days.map((day, index) => {
+                          // console.log('index', index);
+                          return (
+                            <Picker.Item
+                              key={`day-${index}`}
+                              label={day.toString()}
+                              value={day.toString()}
+                            />
+                          );
+                        })}
+                      </Picker>
+                    </View>
+                  </View>
                 </View>
-                <View style={[styles.months, styles.tenure]}>
-                  <Picker
-                    selectedValue={this.state.tenure.months}
-                    style={styles.schemePicker}
-                    onValueChange={this.inputHandler.bind(this, 'months')}>
-                    <Picker.Item
-                      key={`month`}
-                      label={`Months`}
-                      // value={year.toString()}
+                <View>
+                  <View style={styles.interestCon}>
+                    <Image
+                      source={require('./assets/images/rupees.png')}
+                      style={styles.interestIcon}
                     />
-                    {months.map((month, index) => {
-                      // console.log('index', index);
-                      return (
-                        <Picker.Item
-                          key={`month-${index}`}
-                          label={month.toString()}
-                          value={month.toString()}
-                        />
-                      );
-                    })}
-                  </Picker>
-                </View>
-                <View style={[styles.days, styles.tenure]}>
-                  <Picker
-                    selectedValue={this.state.tenure.days}
-                    style={styles.schemePicker}
-                    onValueChange={this.inputHandler.bind(this, 'days')}>
-                    <Picker.Item
-                      key={`days`}
-                      label={`Days`}
-                      // value={year.toString()}
-                    />
-                    {days.map((day, index) => {
-                      // console.log('index', index);
-                      return (
-                        <Picker.Item
-                          key={`day-${index}`}
-                          label={day.toString()}
-                          value={day.toString()}
-                        />
-                      );
-                    })}
-                  </Picker>
-                </View>
-              </View>
-            </View>
-            <View>
-              <View style={styles.interestCon}>
-                <Image
-                  source={require('./assets/images/rupees.png')}
-                  style={styles.interestIcon}
-                />
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.name]}
-                placeholder="Maturity Amount"
-                value={this.state.maturityAmount}
-                onChangeText={this.inputHandler.bind(this, 'maturityAmount')}
-                keyboardType="number-pad"
-              />
-            </View>
-            <View style={styles.multipleElement}>
-              <View style={styles.schemeContainer}>
-                <View style={styles.interestCon}>
-                  <Image
-                    source={require('./assets/images/interest.png')}
-                    style={styles.interestIcon}
+                  </View>
+                  <TextInput
+                    style={[styles.textInput, styles.name]}
+                    placeholder="Maturity Amount"
+                    value={this.state.maturityAmount}
+                    onChangeText={this.inputHandler.bind(
+                      this,
+                      'maturityAmount',
+                    )}
+                    keyboardType="number-pad"
                   />
                 </View>
-                <TextInput
-                  style={[styles.textInput, styles.name]}
-                  placeholder="Interest Rate"
-                  value={this.state.interestRate}
-                  onChangeText={this.inputHandler.bind(this, 'interestRate')}
-                  keyboardType="number-pad"
-                  maxLength={5}
-                />
+                <View style={styles.multipleElement}>
+                  <View style={styles.schemeContainer}>
+                    <View style={styles.interestCon}>
+                      <Image
+                        source={require('./assets/images/interest.png')}
+                        style={styles.interestIcon}
+                      />
+                    </View>
+                    <TextInput
+                      style={[
+                        styles.textInput,
+                        styles.name,
+                        this.state.error.includes('interestRate')
+                          ? styles.invalid
+                          : '',
+                      ]}
+                      placeholder="Interest Rate"
+                      value={this.state.interestRate}
+                      onChangeText={this.inputHandler.bind(
+                        this,
+                        'interestRate',
+                      )}
+                      keyboardType="number-pad"
+                      maxLength={5}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    style={[
+                      styles.datepickerContainer,
+                      this.state.error.includes('maturityDate')
+                        ? styles.invalid
+                        : '',
+                    ]}
+                    onPress={() => {
+                      this.setDatepickerVisibility(true, 'maturityDate');
+                    }}>
+                    <Text style={styles.datepickerText}>
+                      {this.state.maturityDate
+                        ? this.dateFormat(this.state.maturityDate)
+                        : 'Select Maturity Date DD-MM-YYYY'}
+                    </Text>
+                  </TouchableOpacity>
+                  {this.state.datepickerVisibility && (
+                    <DateTimePicker
+                      // testID="dateTimePicker"
+                      style={[styles.datepicker]}
+                      value={
+                        this.state.maturityDate
+                          ? this.state.maturityDate
+                          : new Date().getTime()
+                      }
+                      // mode={'date'}
+                      //   is24Hour={true}
+                      // display="default"
+                      onChange={this.datepickerChange.bind(this, 'maturity')}
+                    />
+                  )}
+                </View>
+                {/* <View>
+                <AutoCompleteSearch data={familyList} css={styles.textInput} />
+              </View> */}
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    this.state.isDisable ? styles.disableBtn : '',
+                  ]}
+                  onPress={this.submitInvestment}>
+                  <Text style={styles.submitText}>Save</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                activeOpacity={1}
-                style={styles.datepickerContainer}
-                onPress={() => {
-                  this.setDatepickerVisibility(true, 'maturityDate');
-                }}>
-                <Text style={styles.datepickerText}>
-                  {this.state.maturityDate
-                    ? this.dateFormat(this.state.maturityDate)
-                    : 'Select Maturity Date DD-MM-YYYY'}
-                </Text>
-              </TouchableOpacity>
-              {this.state.datepickerVisibility && (
-                <DateTimePicker
-                  // testID="dateTimePicker"
-                  style={styles.datepicker}
-                  value={
-                    this.state.maturityDate
-                      ? this.state.maturityDate
-                      : new Date().getTime()
-                  }
-                  // mode={'date'}
-                  //   is24Hour={true}
-                  // display="default"
-                  onChange={this.datepickerChange.bind(this, 'maturity')}
-                />
-              )}
-            </View>
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={this.submitInvestment}>
-              <Text style={styles.submitText}>Save</Text>
-            </TouchableOpacity>
+            </ScrollView>
           </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </>
     );
   }
 }
@@ -506,6 +647,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     fontSize: 18,
     paddingStart: 50,
+    // backgroundColor: 'darkgray',
+  },
+  textInputNoPad: {
+    borderBottomColor: Colors.primary,
+    borderBottomWidth: 1,
+    fontSize: 18,
+    // paddingStart: 50,
     // backgroundColor: 'darkgray',
   },
   multipleElement: {
@@ -600,6 +748,9 @@ const styles = StyleSheet.create({
   submitText: {
     fontSize: 20,
     color: Colors.white,
+  },
+  invalid: {
+    borderBottomColor: 'red',
   },
 });
 export default AddInvestment;

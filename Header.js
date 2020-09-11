@@ -1,5 +1,11 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableWithoutFeedback} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  Image,
+} from 'react-native';
 import Colors from './assets/colors';
 
 const Header = props => {
@@ -16,7 +22,15 @@ const Header = props => {
       <View style={[styles.rightBtn, styles.leftRightBtn]}>
         {props.right && (
           <TouchableWithoutFeedback onPress={props.rightHandler}>
-            <Text style={[styles.rightTxt, styles.leftRightTxt]}>Add</Text>
+            {props.rightType === 'share' ? (
+              <Image
+                source={require('./assets/images/share.png')}
+                style={styles.userIcon}
+              />
+            ) : (
+              // <Text style={[styles.rightTxt, styles.leftRightTxt]}>Share</Text>
+              <Text style={[styles.rightTxt, styles.leftRightTxt]}>Add</Text>
+            )}
           </TouchableWithoutFeedback>
         )}
       </View>
@@ -30,6 +44,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  userIcon: {
+    width: '90%',
+    height: 35,
+    // padding: 10,
+    // borderWidth: 1,
   },
   headerText: {
     color: Colors.white,

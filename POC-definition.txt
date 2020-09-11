@@ -2,7 +2,7 @@
 -User can add/edit/delete Fixed deposites.
 -User can list/search by name all added fixed deposites.
 -User should able to bind FD with family member name.
--Famiy member list.
+-Family member list.
 -User should get local notification for maturity date.
 -Auto backup to google drive.
 
@@ -26,3 +26,15 @@
     -Family name *
     -Maturity Date
 
+---Queries---
+-Hide drawer item like (investment detail screen)
+-drawer open button (floating) in vertically center of screen
+-custom html for drawer
+-investment detail sharing showing black image
+-how to locally upload image in app
+-safe area view
+-
+
+
+
+adb -s f7b4d449 reverse tcp:8081 tcp:8081
