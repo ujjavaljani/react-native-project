@@ -18,6 +18,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {fetchRecords, addRecord} from './utils/dbOperations';
 import AutoCompleteSearch from './AutoCompleteSearch';
 import Loader from './Loader';
+import ImagePicker from 'react-native-image-picker';
+import {imageUpload} from './utils/utility';
+import colors from './assets/colors';
 const schemes = ['RD', 'MIS', 'KVP', 'TD', 'Bank FD'];
 const years = [...Array(11).keys()];
 const months = [...Array(13).keys()];
@@ -47,6 +50,14 @@ const familyList = [
 class AddInvestment extends React.Component {
   constructor(props) {
     super(props);
+    this.options = {
+      title: 'Select Avatar',
+      customButtons: [{name: 'fb', title: 'Choose Photo from Facebook'}],
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
     this.state = {
       depositer: {
         depositer1: '',
@@ -68,6 +79,9 @@ class AddInvestment extends React.Component {
       error: [],
       isLoading: false,
       accountNo: '',
+      photos: [],
+      frontAvatarSource: '',
+      backAvatarSource: '',
       //   isFocused:false
     };
     console.log('Process', process.env);
@@ -218,6 +232,41 @@ class AddInvestment extends React.Component {
     }
     this.setState({error: errorArr}, () => callBack());
   };
+
+  openImagePicker = side => {
+    ImagePicker.showImagePicker(this.options, async response => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        const source = {uri: response.uri};
+
+        // You can also display the image using data:
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+        // var formData = new FormData();
+        // formData.append('file', {
+        //   uri: 'file://' + response.path,
+        //   type: response.type,
+        //   name: response.fileName,
+        //   size: response.fileSize,
+        // });
+        // formData.append('upload_preset', 'certificate');
+        // formData.append('resource_type', 'image');
+        // formData.append('api_key', '245738536474931');
+        console.log('uri received===>', response.uri);
+        await imageUpload('data:image/jpeg;base64,' + response.data);
+        this.setState({
+          [side]: source,
+        });
+      }
+    });
+  };
+
   //   const labelStyle = {
   //     position: 'absolute',
   //     left: 50,
@@ -386,7 +435,7 @@ class AddInvestment extends React.Component {
                   />
                 </View>
                 <View style={styles.multipleElement}>
-                  <View style={styles.schemeContainer}>
+                  <View style={[styles.schemeContainer]}>
                     <Picker
                       testID="Scheme"
                       selectedValue={this.state.scheme}
@@ -605,6 +654,45 @@ class AddInvestment extends React.Component {
                 {/* <View>
                 <AutoCompleteSearch data={familyList} css={styles.textInput} />
               </View> */}
+                <View style={styles.multipleElement}>
+                  <View style={[styles.certImgWra]}>
+                    <TouchableOpacity
+                      // onPress={this.openImagePicker}
+                      onPress={() => this.openImagePicker('frontAvatarSource')}
+                      style={styles.cerImgCon}>
+                      {this.state.frontAvatarSource ? (
+                        <Image
+                          source={this.state.frontAvatarSource}
+                          style={styles.uploadAvatar}
+                        />
+                      ) : (
+                        <Image
+                          source={require('./assets/images/front-certi.png')}
+                          style={styles.uploadAvatar}
+                        />
+                      )}
+                      <Text style={styles.imgLbl}>Front-image</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={[styles.certImgWra, styles.rightBorder]}>
+                    <TouchableOpacity
+                      onPress={() => this.openImagePicker('backAvatarSource')}
+                      style={[styles.cerImgCon]}>
+                      {this.state.backAvatarSource ? (
+                        <Image
+                          source={this.state.backAvatarSource}
+                          style={styles.uploadAvatar}
+                        />
+                      ) : (
+                        <Image
+                          source={require('./assets/images/Back-certi.png')}
+                          style={styles.uploadAvatar}
+                        />
+                      )}
+                      <Text style={styles.imgLbl}>Back image</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
                 <TouchableOpacity
                   style={[
                     styles.submitButton,
@@ -751,6 +839,29 @@ const styles = StyleSheet.create({
   },
   invalid: {
     borderBottomColor: 'red',
+  },
+  certImgWra: {
+    flex: 1,
+    borderColor: Colors.primary,
+    borderBottomWidth: 1,
+    // borderRightWidth: 1,
+    // paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  uploadAvatar: {
+    width: '70%',
+    height: 100,
+  },
+  cerImgCon: {
+    alignItems: 'center',
+  },
+  rightBorder: {
+    borderLeftWidth: 1,
+  },
+  imgLbl: {
+    fontSize: 18,
+    color: colors.primary,
+    fontWeight: 'bold',
   },
 });
 export default AddInvestment;
