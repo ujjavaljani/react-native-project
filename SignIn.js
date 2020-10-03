@@ -14,6 +14,7 @@ import {
 import Colors from './assets/colors';
 import Header from './Header';
 import Loader from './Loader';
+import API from './utils/network';
 import {_retrieveData, _storeData} from './utils/utility';
 
 class SignIn extends React.Component {
@@ -47,23 +48,39 @@ class SignIn extends React.Component {
       if (this.state.error.length === 0) {
         console.log('inside condition', JSON.stringify(this.state.error));
         // this.props.navigation.navigate('Dashboard');
-        const userPref = await _retrieveData();
-        userPref.isLoggedIn = true;
-        await _storeData(userPref);
-        this.props.navigation.navigate('Dashboard');
+        const loginResponse = await API(
+          'POST',
+          'https://investment-app-api.herokuapp.com/api/v1/login',
+          {
+            email: this.state.username,
+            password: this.state.password,
+          },
+          false,
+        );
+        console.log('loginResponse', loginResponse);
+        this.setState({isLoading: false}, async () => {
+          // Alert.alert(JSON.stringify(loginResponse.data));
+          if (loginResponse?.data?.code) {
+            const userPref = await _retrieveData();
+            userPref.isLoggedIn = true;
+            await _storeData(userPref);
+            this.props.navigation.navigate('Dashboard');
+          } else {
+            Alert.alert('Invalid Username or password.');
+          }
+        });
       }
-      this.setState({isLoading: false});
     });
   };
   validateField = callback => {
     let errorArr = [];
-    // const {username, password} = this.state;
-    // if (!username || username.trim() === '') {
-    //   errorArr.push('username');
-    // }
-    // if (!password || password.trim() === '') {
-    //   errorArr.push('password');
-    // }
+    const {username, password} = this.state;
+    if (!username || username.trim() === '') {
+      errorArr.push('username');
+    }
+    if (!password || password.trim() === '') {
+      errorArr.push('password');
+    }
     // console.log('errorArr', errorArr);
     this.setState({error: errorArr}, () => callback());
   };

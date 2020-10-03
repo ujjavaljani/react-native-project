@@ -8,6 +8,9 @@ import {
   Share,
   PermissionsAndroid,
   NativeModules,
+  Linking,
+  TouchableWithoutFeedback,
+  Modal,
 } from 'react-native';
 import Loader from './Loader';
 import Header from './Header';
@@ -20,7 +23,8 @@ import RNShareFile from './Share';
 // export const {RNShareFile} = NativeModules;
 const InvestmentDetail = ({navigation, route}) => {
   const inputRef = useRef();
-  const [imagePrev, setimg] = useState(null);
+  const [modalImg, setModalImg] = useState('');
+  // const [imagePrev, setimg] = useState(null);
   //   const viewShot = useRef(null);
   //   let viewShot = React.createRef();
   const {
@@ -37,21 +41,24 @@ const InvestmentDetail = ({navigation, route}) => {
     depositeDate,
     maturityDate,
     familyId,
+    accountNumber,
+    frontImage,
+    backImage,
   } = route.params.investment;
-  console.log('props detail', name1);
-  console.log('imagePrev====', imagePrev);
+  // console.log('props detail', name1);
+  // console.log('imagePrev====', imagePrev);
   const formatDate = timestamp => {
-    console.log('timestamp', timestamp);
+    // console.log('timestamp', timestamp);
     const d = new Date(Number(timestamp));
     return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
   };
 
   const captureAndShareScreenshot = async () => {
-    const storageGranted = await PermissionsAndroid.requestMultiple([
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-      PermissionsAndroid.PERMISSIONS.CAMERA,
-    ]);
+    // const storageGranted = await PermissionsAndroid.requestMultiple([
+    //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    //   PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+    //   PermissionsAndroid.PERMISSIONS.CAMERA,
+    // ]);
     // const readStorageGranted = await PermissionsAndroid.request(
 
     // );
@@ -126,6 +133,14 @@ const InvestmentDetail = ({navigation, route}) => {
           ref={inputRef}
           // options={{format: 'jpg', quality: 0.9}}
         >
+          {accountNumber && (
+            <View>
+              <View style={styles.textWrap}>
+                <Text style={styles.label}>Account No:</Text>
+                <Text style={styles.textInput}>{accountNumber}</Text>
+              </View>
+            </View>
+          )}
           <View>
             {/* <View style={styles.userIconCon}>
               <Image
@@ -265,6 +280,26 @@ const InvestmentDetail = ({navigation, route}) => {
               </View>
             </View>
           )}
+          <View style={styles.multiEle}>
+            {!!frontImage && (
+              <View style={[styles.halfWidth]}>
+                {/* <Text style={styles.label}>Front Image:</Text> */}
+                <TouchableWithoutFeedback
+                  onPress={() => setModalImg(frontImage)}>
+                  <Image style={styles.prevImg} source={{uri: frontImage}} />
+                </TouchableWithoutFeedback>
+              </View>
+            )}
+            {!!backImage && (
+              <View style={styles.halfWidth}>
+                {/* <Text style={styles.label}>Back Image:</Text> */}
+                <TouchableWithoutFeedback
+                  onPress={() => setModalImg(backImage)}>
+                  <Image style={styles.prevImg} source={{uri: backImage}} />
+                </TouchableWithoutFeedback>
+              </View>
+            )}
+          </View>
           {familyId && (
             <View>
               <View style={styles.textWrap}>
@@ -274,14 +309,31 @@ const InvestmentDetail = ({navigation, route}) => {
             </View>
           )}
         </ViewShot>
-        {imagePrev && (
+
+        <View>
+          <Modal
+            animationType={'slide'}
+            transparent={false}
+            visible={modalImg !== ''}>
+            <TouchableWithoutFeedback>
+              <Text style={styles.closeBtn} onPress={() => setModalImg('')}>
+                Close
+              </Text>
+            </TouchableWithoutFeedback>
+            <View style={styles.modalWrapper}>
+              <Image style={[styles.modalImage]} source={{uri: modalImg}} />
+            </View>
+          </Modal>
+        </View>
+
+        {/* {imagePrev && (
           <Image
             fadeDuration={0}
             resizeMode="contain"
             style={styles.previewImage}
             source={imagePrev}
           />
-        )}
+        )} */}
         {/* </View> */}
       </ScrollView>
     </View>
@@ -335,6 +387,43 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlignVertical: 'center',
     // flexDirection: 'row',
+  },
+  imageLink: {
+    color: 'blue',
+    height: 80,
+    // width: 100,
+    // overflow: 'scroll',
+  },
+  prevImg: {
+    width: '100%',
+    // alignItems: 'center',
+    height: 200,
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
+    // justifyContent: 'center',
+  },
+  modalWrapper: {
+    backgroundColor: 'gray',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+  },
+  closeBtn: {
+    alignSelf: 'flex-end',
+    padding: 10,
+    fontSize: 20,
+    color: colors.primary,
+  },
+  multiEle: {
+    flexDirection: 'row',
+  },
+  halfWidth: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    padding: 10,
   },
 });
 export default InvestmentDetail;

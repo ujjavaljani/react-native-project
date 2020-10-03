@@ -49,8 +49,8 @@ export async function ExecuteQuery(sql, params = []) {
 
 export async function addRecord(params) {
   console.log('db object', global.db);
-  const response = await ExecuteQuery(
-    'Insert into investments (name1,name2,name3,nomineeName,schemeType,bankName,branch,depositeDate,maturityDate,depositeDurationYears,depositeDurationMonths,depositeDurationDays,depositeAmount,maturityAmount,interestRate) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+  return await ExecuteQuery(
+    'Insert into investments (name1,name2,name3,nomineeName,schemeType,bankName,branch,depositeDate,maturityDate,depositeDurationYears,depositeDurationMonths,depositeDurationDays,depositeAmount,maturityAmount,interestRate,frontImage,backImage,accountNumber) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     [
       params.depositer.depositer1,
       params.depositer.depositer2,
@@ -67,6 +67,9 @@ export async function addRecord(params) {
       params.depositeAmount,
       params.maturityAmount,
       params.interestRate,
+      params.frontUrl,
+      params.backUrl,
+      params.accountNo,
     ],
   );
   //   fetchRecords();

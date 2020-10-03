@@ -75,6 +75,9 @@ class Dashboard extends React.Component {
     this.state = {
       investments: [],
     };
+  }
+  componentDidMount() {
+    console.log('dashboard Constructor');
     this.getInvestment();
   }
   async getInvestment() {

@@ -84,7 +84,7 @@ class AddInvestment extends React.Component {
       backAvatarSource: '',
       //   isFocused:false
     };
-    console.log('Process', process.env);
+    // console.log('Process', process.env);
   }
 
   componentDidMount() {
@@ -93,8 +93,8 @@ class AddInvestment extends React.Component {
   }
   //   console.log('years', years);
   inputHandler(field, value) {
-    console.log('field', field);
-    console.log('value', value);
+    // console.log('field', field);
+    // console.log('value', value);
     let stateData = {[field]: value};
     switch (field) {
       case 'depositer1':
@@ -129,8 +129,8 @@ class AddInvestment extends React.Component {
     this.setState(stateData);
   }
   datepickerChange(field, event) {
-    console.log('datepicker change', event);
-    console.log('datepicker field', field);
+    // console.log('datepicker change', event);
+    // console.log('datepicker field', field);
     switch (event.type) {
       case 'dismissed':
         this.setDatepickerVisibility(false, this.state.datePickerVisibilityFor);
@@ -150,8 +150,8 @@ class AddInvestment extends React.Component {
     }
   }
   setDatepickerVisibility = (visibility, field, valueChanged, date) => {
-    console.log('visibility', visibility);
-    console.log('visibility for field', field);
+    // console.log('visibility', visibility);
+    // console.log('visibility for field', field);
     const dateObj = {
       datepickerVisibility: visibility,
       datePickerVisibilityFor: field,
@@ -159,7 +159,7 @@ class AddInvestment extends React.Component {
     if (valueChanged) {
       dateObj[this.state.datePickerVisibilityFor] = date;
     }
-    console.log('dateObj', dateObj);
+    // console.log('dateObj', dateObj);
     this.setState(dateObj);
   };
   dateFormat(timestamp) {
@@ -168,18 +168,45 @@ class AddInvestment extends React.Component {
   }
   submitInvestment = () => {
     this.setState({isLoading: true});
-    this.validateFields(() => {
+    this.validateFields(async () => {
       if (this.state.error.length === 0) {
-        console.log('form submit===>', this.state);
+        // console.log('form submit===>', this.state);
         // const investmentData = this.state;
-        const {
-          datePickerVisibilityFor,
-          datepickerVisibility,
-          ...investmentData
-        } = this.state;
-        console.log('investmentData', investmentData);
-        addRecord(investmentData);
-        // this.props.navigation.navigate('Dashboard');
+        try {
+          let frontUrl = '',
+            backUrl = '';
+          if (this.state.frontAvatarSource !== '') {
+            const response = await imageUpload(
+              this.state.frontAvatarSource.base64Data,
+            );
+
+            // console.log('frontUrl', response.data.secure_url);
+            frontUrl = response.data.secure_url;
+          }
+          if (this.state.backAvatarSource !== '') {
+            const response = await imageUpload(
+              this.state.backAvatarSource.base64Data,
+            );
+            backUrl = response.data.secure_url;
+          }
+          const {
+            datePickerVisibilityFor,
+            datepickerVisibility,
+            frontAvatarSource,
+            backAvatarSource,
+            ...investmentData
+          } = this.state;
+          investmentData.frontUrl = frontUrl;
+          investmentData.backUrl = backUrl;
+          // console.log('investmentData', investmentData);
+          const newRecorsRes = await addRecord(investmentData);
+          console.log('newRecorsRes', newRecorsRes);
+        } catch (error) {
+          console.log('inside add error', error);
+          throw error;
+        }
+
+        this.props.navigation.navigate('Dashboard');
       } else {
         console.log('Error in submit', this.state.error);
       }
@@ -199,7 +226,7 @@ class AddInvestment extends React.Component {
       accountNo,
     } = this.state;
     let errorArr = [];
-    console.log('depositer1', depositer1);
+    // console.log('depositer1', depositer1);
     if (!accountNo || accountNo.trim() === '') {
       errorArr.push('accountNo');
     }
@@ -235,17 +262,23 @@ class AddInvestment extends React.Component {
 
   openImagePicker = side => {
     ImagePicker.showImagePicker(this.options, async response => {
-      console.log('Response = ', response);
+      // console.log('Response = ', response);
 
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        // console.log('User cancelled image picker');
       } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
+        // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
+        // console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = {uri: response.uri};
-
+        const source = {
+          uri: response.uri,
+          base64Data: `data:${response.type};base64,${response.data}`,
+        };
+        this.setState({
+          [side]: source,
+        });
+        // await imageUpload('data:image/jpeg;base64,' + response.data);
         // You can also display the image using data:
         // const source = { uri: 'data:image/jpeg;base64,' + response.data };
         // var formData = new FormData();
@@ -258,11 +291,7 @@ class AddInvestment extends React.Component {
         // formData.append('upload_preset', 'certificate');
         // formData.append('resource_type', 'image');
         // formData.append('api_key', '245738536474931');
-        console.log('uri received===>', response.uri);
-        await imageUpload('data:image/jpeg;base64,' + response.data);
-        this.setState({
-          [side]: source,
-        });
+        // console.log('uri received===>', response.uri);
       }
     });
   };

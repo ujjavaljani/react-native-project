@@ -6,7 +6,7 @@ import SignIn from './SignIn';
 import Dashboard from './Dashboard';
 import Investment from './AddInvestment';
 import InvestmentDetail from './InvestmentDetail';
-import ScreenShot from './ScreenShot';
+// import ScreenShot from './ScreenShot';
 import colors from './assets/colors';
 
 const Drawer = createDrawerNavigator();
@@ -35,11 +35,11 @@ function MyDrawer(props) {
         name="Investment"
         component={Investment}
       />
-      <Drawer.Screen
+      {/* <Drawer.Screen
         style={styles.drawerScreen}
         name="CaptureDemo"
         component={ScreenShot}
-      />
+      /> */}
       <Drawer.Screen
         name="InvestmentDetail"
         component={InvestmentDetail}
