@@ -80,3 +80,13 @@ export async function fetchRecords() {
   //   console.log('response', response.rows.item(6));
   return response.rows;
 }
+
+export async function deleteRecord(investmentId) {
+  const response = await ExecuteQuery(
+    'DELETE FROM investments where investmentId =?',
+    [investmentId],
+  );
+  console.log('Response in Delete', response.rows);
+  //   console.log('response', response.rows.item(6));
+  return response.rows;
+}
