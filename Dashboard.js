@@ -15,65 +15,6 @@ import Drawer from './Drawer';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import colors from './assets/colors';
 import Loader from './Loader';
-const records = [
-  {
-    amount: 50000,
-    id: 1,
-    interestRate: 7.12,
-    maturityAmount: 55000,
-    month: 2,
-    year: 1,
-    days: 12,
-    depositeDate: new Date(),
-    maturityDate: new Date(),
-    name: ['Ujjaval Jani', 'Ramesh Jani'],
-    bankName: 'SBI',
-    branch: 'Ambawadi',
-  },
-  {
-    amount: 30000,
-    id: 2,
-    interestRate: 7.42,
-    maturityAmount: 45000,
-    month: 8,
-    year: 2,
-    days: 12,
-    depositeDate: new Date(),
-    maturityDate: new Date(),
-    name: ['U.R.Jani', 'R.C.Jani'],
-    bankName: 'Union Bank',
-    branch: 'Shahibaug',
-  },
-  {
-    amount: 40000,
-    id: 3,
-    interestRate: 8.12,
-    maturityAmount: 85000,
-    month: 2,
-    year: 1,
-    days: 10,
-    depositeDate: new Date(),
-    maturityDate: new Date(),
-    name: ['S.R.Jani', 'R.C.Jani'],
-    bankName: 'Axis Bank',
-    branch: 'Naranpura',
-  },
-  {
-    amount: 60000,
-    id: 4,
-    interestRate: 5.12,
-    maturityAmount: 75000,
-    month: 6,
-    year: 2,
-    days: 12,
-    depositeDate: new Date(),
-    maturityDate: new Date(),
-    name: ['R.C.Jani', 'S.R.Jani'],
-    bankName: 'icici',
-    branch: 'Sindhu bhavan',
-  },
-];
-
 class Dashboard extends React.Component {
   constructor(props) {
     super(props);
@@ -81,20 +22,26 @@ class Dashboard extends React.Component {
       investments: [],
       isLoading: false,
     };
-    this.getInvestment();
   }
-  // componentDidMount() {
-  //   console.log('dashboard Constructor');
 
-  // }
+  componentDidMount() {
+    this._unsubscribe = this.props.navigation.addListener('focus', () => {
+      // do something
+      this.getInvestment();
+    });
+  }
+
+  componentWillUnmount() {
+    this._unsubscribe();
+  }
   getInvestment = async () => {
     this.setState({isLoading: true});
     let investmentsData = await fetchRecords();
-    // investmentsData = investmentsData.raw().map((investment, index) => {
-    //   return {...investment, key: `${index}`};
-    // });
+    investmentsData = investmentsData.raw().map((investment, index) => {
+      return {...investment, key: `${index}`};
+    });
     // console.log('investments in dashboard', investmentsData);
-    this.setState({investments: investmentsData.raw(), isLoading: false});
+    this.setState({investments: investmentsData, isLoading: false});
     // setTimeout(() => {
     // }, 5000);
   };
@@ -118,7 +65,6 @@ class Dashboard extends React.Component {
     );
   };
   render() {
-    console.log('Render of dashboard', this.state);
     return (
       <View style={styles.dashboardScreen}>
         <Loader loading={this.state.isLoading} />
@@ -143,18 +89,7 @@ class Dashboard extends React.Component {
               />
             }
             renderItem={({item}) => (
-              <Animated.View
-                style={[
-                  styles.rowFrontContainer,
-                  {
-                    height: rowTranslateAnimatedValues[
-                      data.item.key
-                    ].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 50],
-                    }),
-                  },
-                ]}>
+              <Animated.View style={[styles.rowFrontContainer]}>
                 <TouchableWithoutFeedback
                   onPress={() =>
                     this.props.navigation.navigate('InvestmentDetail', {

@@ -66,14 +66,14 @@ const InvestmentDetail = ({navigation, route}) => {
 
     // );
 
-    console.log('imagePrev', imagePrev);
+    // console.log('imagePrev', imagePrev);
 
     inputRef.current.capture().then(async uri => {
       // await RNShareFile.share(uri, 'investment.png');
       // setimg({uri});
       RNFS.readFile(uri, 'base64').then(async res => {
-        let urlString = 'data:image/png;base64,' + res;
-        setimg({uri: urlString});
+        // let urlString = 'data:image/png;base64,' + res;
+        // setimg({uri: urlString});
         await RNShareFile.share(res, 'investment.png');
       });
       // let options = {

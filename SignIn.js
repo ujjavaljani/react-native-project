@@ -15,7 +15,9 @@ import Colors from './assets/colors';
 import Header from './Header';
 import Loader from './Loader';
 import API from './utils/network';
-import {_retrieveData, _storeData} from './utils/utility';
+import {connect} from 'react-redux';
+import {storeAuthData} from './utils/utility';
+import * as actionTypes from './actionTypes';
 
 class SignIn extends React.Component {
   constructor(props) {
@@ -41,11 +43,11 @@ class SignIn extends React.Component {
   login = () => {
     // Alert.alert(JSON.stringify({username, password}));
     // console.log('login', JSON.stringify(error));
-    this.setState({isLoading: true});
     // setLoading(true);
     this.validateField(async () => {
       console.log('after validate', JSON.stringify(this.state.error));
       if (this.state.error.length === 0) {
+        this.setState({isLoading: true});
         console.log('inside condition', JSON.stringify(this.state.error));
         // this.props.navigation.navigate('Dashboard');
         const loginResponse = await API(
@@ -59,12 +61,11 @@ class SignIn extends React.Component {
         );
         console.log('loginResponse', loginResponse);
         this.setState({isLoading: false}, async () => {
+          await storeAuthData(loginResponse.data.data);
           // Alert.alert(JSON.stringify(loginResponse.data));
           if (loginResponse?.data?.code) {
-            const userPref = await _retrieveData();
-            userPref.isLoggedIn = true;
-            await _storeData(userPref);
-            this.props.navigation.navigate('Dashboard');
+            this.props.loginUser(loginResponse.data.data);
+            this.props.navigation.navigate('App');
           } else {
             Alert.alert('Invalid Username or password.');
           }
@@ -135,13 +136,13 @@ class SignIn extends React.Component {
                 />
               </View>
             </View>
-            <View style={styles.button}>
+            {/* <View style={styles.button}>
               <Button
                 title="Sign Up"
                 color={Colors.primary}
                 style={styles.buttonText}
               />
-            </View>
+            </View> */}
           </View>
         </TouchableWithoutFeedback>
       </>
@@ -194,4 +195,22 @@ const styles = StyleSheet.create({
     borderBottomColor: 'red',
   },
 });
-export default SignIn;
+function mapStateToProps(state) {
+  console.log('mapStateToProps in signin', state);
+  return {
+    isLoggedIn: state,
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    loginUser: data => {
+      dispatch({type: actionTypes.SET_LOGIN, data});
+    },
+  };
+}
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(SignIn);
+// export default SignIn;

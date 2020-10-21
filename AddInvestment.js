@@ -21,6 +21,7 @@ import Loader from './Loader';
 import ImagePicker from 'react-native-image-picker';
 import {imageUpload} from './utils/utility';
 import colors from './assets/colors';
+import dayjs from 'dayjs';
 const schemes = ['RD', 'MIS', 'KVP', 'TD', 'Bank FD'];
 const years = [...Array(11).keys()];
 const months = [...Array(13).keys()];
@@ -123,6 +124,8 @@ class AddInvestment extends React.Component {
       case 'months':
       case 'days':
         stateData = {tenure: {...this.state.tenure, [field]: value}};
+        const maturityDate = this.calculateMaturityDate(stateData);
+        stateData = {...stateData, maturityDate: maturityDate};
         // setTenure({...tenure, [field]: value});
         break;
     }
@@ -149,6 +152,33 @@ class AddInvestment extends React.Component {
         break;
     }
   }
+  calculateMaturityDate = ({tenure}) => {
+    let expectedMaturityDate = this.state.depositeDate;
+    console.log('depositeDate', expectedMaturityDate, tenure);
+    if (expectedMaturityDate) {
+      // let years = parseInt(depositeDate.getFullYear());
+      // let months = parseInt(depositeDate.getMonth());
+      // let days = parseInt(depositeDate.getDate());
+      if (tenure.years) {
+        expectedMaturityDate = dayjs(expectedMaturityDate)
+          .add(tenure.years, 'year')
+          .valueOf();
+      }
+      if (tenure.months) {
+        expectedMaturityDate = dayjs(expectedMaturityDate)
+          .add(tenure.months, 'month')
+          .valueOf();
+      }
+      if (tenure.days) {
+        expectedMaturityDate = dayjs(expectedMaturityDate)
+          .add(tenure.days, 'day')
+          .valueOf();
+      }
+      console.log('maturity===', expectedMaturityDate);
+      return expectedMaturityDate;
+      // return dayjs(expectedMaturityDate);
+    }
+  };
   setDatepickerVisibility = (visibility, field, valueChanged, date) => {
     // console.log('visibility', visibility);
     // console.log('visibility for field', field);
@@ -205,7 +235,7 @@ class AddInvestment extends React.Component {
           console.log('inside add error', error);
           throw error;
         }
-
+        // this.props.navigation.goBack();
         this.props.navigation.navigate('Dashboard');
       } else {
         console.log('Error in submit', this.state.error);
@@ -655,9 +685,10 @@ class AddInvestment extends React.Component {
                         ? styles.invalid
                         : '',
                     ]}
-                    onPress={() => {
-                      this.setDatepickerVisibility(true, 'maturityDate');
-                    }}>
+                    // onPress={() => {
+                    //   this.setDatepickerVisibility(true, 'maturityDate');
+                    // }}
+                  >
                     <Text style={styles.datepickerText}>
                       {this.state.maturityDate
                         ? this.dateFormat(this.state.maturityDate)

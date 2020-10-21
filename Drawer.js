@@ -2,12 +2,13 @@ import React from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 // import StackNavigator from './StackNavigator';
-import SignIn from './SignIn';
+// import SignIn from './SignIn';
 import Dashboard from './Dashboard';
 import Investment from './AddInvestment';
 import InvestmentDetail from './InvestmentDetail';
 // import ScreenShot from './ScreenShot';
 import colors from './assets/colors';
+import CustomDrawerContent from './CustomDrawerContent';
 
 const Drawer = createDrawerNavigator();
 
@@ -15,15 +16,13 @@ function MyDrawer(props) {
   return (
     <Drawer.Navigator
       drawerStyle={styles.drawer}
-      initialRouteName={props.isLoggedIn ? 'Dashboard' : ''}
+      initialRouteName={'Dashboard'}
+      drawerContent={() => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
-        gestureEnabled: true,
-        gestureDirection: 'horizontal',
+        // gestureEnabled: true,
+        // gestureDirection: 'horizontal',
       }}>
-      {/* <View>
-        <Text>Profile</Text>
-      </View> */}
       {/* <StackNavigator /> */}
       <Drawer.Screen
         style={styles.drawerScreen}
