@@ -48,42 +48,45 @@ const familyList = [
     name: 'Kalidas Patel',
   },
 ];
+const initialState = {
+  depositer: {
+    depositer1: '',
+    depositer2: '',
+    depositer3: '',
+  },
+  nominee: '',
+  bankName: '',
+  branchName: '',
+  scheme: schemes[0],
+  depositeDate: '',
+  maturityDate: '',
+  tenure: {years: null, months: null, days: null},
+  datepickerVisibility: false,
+  depositeAmount: 0,
+  interestRate: 0,
+  maturityAmount: 0,
+  datePickerVisibilityFor: '',
+  error: [],
+  isLoading: false,
+  accountNo: '',
+  photos: [],
+  frontAvatarSource: '',
+  backAvatarSource: '',
+  //   isFocused:false
+};
 class AddInvestment extends React.Component {
   constructor(props) {
     super(props);
     this.options = {
       title: 'Select Avatar',
-      customButtons: [{name: 'fb', title: 'Choose Photo from Facebook'}],
+      // customButtons: [{name: 'fb', title: 'Choose Photo from Facebook'}],
       storageOptions: {
         skipBackup: true,
         path: 'images',
       },
     };
     this.state = {
-      depositer: {
-        depositer1: '',
-        depositer2: '',
-        depositer3: '',
-      },
-      nominee: '',
-      bankName: '',
-      branchName: '',
-      scheme: schemes[0],
-      depositeDate: '',
-      maturityDate: '',
-      tenure: {years: null, months: null, days: null},
-      datepickerVisibility: false,
-      depositeAmount: 0,
-      interestRate: 0,
-      maturityAmount: 0,
-      datePickerVisibilityFor: '',
-      error: [],
-      isLoading: false,
-      accountNo: '',
-      photos: [],
-      frontAvatarSource: '',
-      backAvatarSource: '',
-      //   isFocused:false
+      ...initialState,
     };
     // console.log('Process', process.env);
   }
@@ -236,7 +239,9 @@ class AddInvestment extends React.Component {
           throw error;
         }
         // this.props.navigation.goBack();
-        this.props.navigation.navigate('Dashboard');
+        this.setState(initialState, () => {
+          this.props.navigation.navigate('Dashboard');
+        });
       } else {
         console.log('Error in submit', this.state.error);
       }

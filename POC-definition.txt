@@ -33,8 +33,20 @@
 -investment detail sharing showing black image
 -how to locally upload image in app
 -safe area view
--
-
-
-
 adb -s f7b4d449 reverse tcp:8081 tcp:8081
+
+
+
+Covered Points
+    -Local(sqllite) database operations (Investment records)
+    -navigation module for screen navigation, stack and drawer navigation
+    -redux integration
+    -REST API call (sign in)
+    -Third Party api call (image upload)
+    -Android Native module intergration (Share file)
+    -npm modules 
+        -image capture and select from gallery
+        -Swipe Delete
+        -axios for api call
+    
+

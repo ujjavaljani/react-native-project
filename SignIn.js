@@ -195,12 +195,6 @@ const styles = StyleSheet.create({
     borderBottomColor: 'red',
   },
 });
-function mapStateToProps(state) {
-  console.log('mapStateToProps in signin', state);
-  return {
-    isLoggedIn: state,
-  };
-}
 
 function mapDispatchToProps(dispatch) {
   return {
@@ -210,7 +204,7 @@ function mapDispatchToProps(dispatch) {
   };
 }
 export default connect(
-  mapStateToProps,
+  null,
   mapDispatchToProps,
 )(SignIn);
 // export default SignIn;
